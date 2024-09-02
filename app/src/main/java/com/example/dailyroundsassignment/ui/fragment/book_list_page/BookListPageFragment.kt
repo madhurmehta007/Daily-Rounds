@@ -6,26 +6,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.dailyroundsassignment.R
 import com.example.dailyroundsassignment.adapter.BookListAdapter
 import com.example.dailyroundsassignment.data_model.BookData
 import com.example.dailyroundsassignment.databinding.FragmentBookListPageBinding
 import com.example.dailyroundsassignment.ui.fragment.book_detail_page.BookDetailPageFragment
+import com.example.dailyroundsassignment.utils.Constants.Companion.ARG_BOOKS
+import com.example.dailyroundsassignment.utils.Constants.Companion.RecipeDescriptionBottomSheetTag
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class BookListPageFragment : Fragment() {
-    private var _binding: FragmentBookListPageBinding? = null
-    private val binding
-        get() = _binding!!
+
+    private val binding: FragmentBookListPageBinding by lazy {
+        FragmentBookListPageBinding.inflate(layoutInflater)
+    }
 
     companion object {
-        private const val ARG_BOOKS = "books"
-
         fun newInstance(books: List<BookData>): BookListPageFragment {
             val fragment = BookListPageFragment()
             val args = Bundle()
@@ -38,7 +37,6 @@ class BookListPageFragment : Fragment() {
     private lateinit var bookListVm: BookListPageViewModel
     private lateinit var bookAdapter: BookListAdapter
     private var onLastItemVisibleListener: (() -> Unit)? = null
-    private var year: Int = 0
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -50,7 +48,6 @@ class BookListPageFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        _binding = FragmentBookListPageBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -59,23 +56,9 @@ class BookListPageFragment : Fragment() {
 
         val books = arguments?.getSerializable(ARG_BOOKS) as? List<BookData> ?: emptyList()
 
-        bookAdapter = BookListAdapter(books, onFavoriteClick = {
-            bookListVm.handleFavoriteClick(it)
-        }, onItemClick = {
-            val dialog =
-                BookDetailPageFragment(
-                    it
-                )
+        initAdapter(books)
 
-            dialog.isCancelable = true
-            dialog.show(parentFragmentManager, "RecipeDescriptionBottomSheet")
-        })
-        binding.recyclerView.layoutManager = LinearLayoutManager(context)
-        binding.recyclerView.adapter = bookAdapter
-
-        bookListVm.allSavedBooks.observe(viewLifecycleOwner) {
-            updateAdapter()
-        }
+        attachObservers()
 
         binding.recyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -96,5 +79,27 @@ class BookListPageFragment : Fragment() {
 
     fun setOnLastItemVisibleListener(listener: () -> Unit) {
         onLastItemVisibleListener = listener
+    }
+
+    private fun attachObservers() {
+        bookListVm.allSavedBooks.observe(viewLifecycleOwner) {
+            updateAdapter()
+        }
+    }
+
+    private fun initAdapter(books: List<BookData>) {
+        bookAdapter = BookListAdapter(books, onFavoriteClick = {
+            bookListVm.handleFavoriteClick(it)
+        }, onItemClick = {
+            val dialog =
+                BookDetailPageFragment(
+                    it
+                )
+
+            dialog.isCancelable = true
+            dialog.show(parentFragmentManager, RecipeDescriptionBottomSheetTag)
+        })
+        binding.recyclerView.layoutManager = LinearLayoutManager(context)
+        binding.recyclerView.adapter = bookAdapter
     }
 }

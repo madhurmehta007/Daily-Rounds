@@ -38,19 +38,18 @@ class BookListPageViewModel @Inject constructor(private val repository: Reposito
         }
     }
 
-    fun insertBooks(bookData: SavedBookData) {
+   private fun insertBooks(bookData: SavedBookData) {
         viewModelScope.launch(Dispatchers.IO) {
             dbRepository.insertBooks(bookData)
         }
     }
 
-    fun deleteBooks(id: String) {
+    private fun deleteBooks(id: String) {
         viewModelScope.launch(Dispatchers.IO) {
             dbRepository.deleteBooks(id)
         }
     }
 
-    // Updated to return favorite books for a specific year
     fun getFavoriteBooksForYear(year: Int): List<BookData> {
         val booksForYear = booksByYear.value?.get(year) ?: emptyList()
         val favoriteIds = allSavedBooks.value?.map { it.id }?.toSet() ?: emptySet()

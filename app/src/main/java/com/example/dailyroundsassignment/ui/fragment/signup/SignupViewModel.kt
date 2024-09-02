@@ -18,24 +18,13 @@ import javax.inject.Inject
 @HiltViewModel
 class SignupViewModel@Inject constructor(private val repository: Repository) :ViewModel() {
 
-     val _networkDataResponse = MutableLiveData<Response<NetworkIPData>>()
+    val networkResponse = MutableLiveData<Response<NetworkIPData>>()
     val networkDataResponse: LiveData<Response<NetworkIPData>>
-        get() = _networkDataResponse
+        get() = networkResponse
 
     private val _countryListResponse = MutableLiveData<Response<List<CountryDataItem>>>()
     val countryListResponse: LiveData<Response<List<CountryDataItem>>>
         get() = _countryListResponse
-
-    fun getNetworkResponse() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val response = repository.getNetworkData()
-                _networkDataResponse.postValue(response)
-            } catch (e: IOException) {
-                Log.e("error", "${e.message}")
-            }
-        }
-    }
 
     fun getCountryList(){
         viewModelScope.launch(Dispatchers.IO) {
